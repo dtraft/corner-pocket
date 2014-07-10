@@ -1,6 +1,6 @@
 
 angular.module("corner-pocket", [])
-.factory('$ngPouch', function($q, $parse, $rootScope){
+.factory('corner-pocket', function($q, $parse, $rootScope){
 
 	var db;
 
