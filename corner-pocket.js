@@ -326,8 +326,11 @@ angular.module("corner-pocket", [])
 			//reset params if needed
 			if(typeof options === 'function'){
 				passedMap = options;
-				options = null;
+				options = {};
 			}
+			
+			//default to include docs
+			options.include_docs = true;
 
 			var map;
 
@@ -337,7 +340,7 @@ angular.module("corner-pocket", [])
 					if(err){
 						deferred.reject(err);
 					}else{			
-						deferred.resolve(new PouchCollection(_.pluck(response.rows, "value"), map, options));
+						deferred.resolve(new PouchCollection(_.pluck(response.rows, "doc"), map, options));
 					}
 				});
 			}
