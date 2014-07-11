@@ -1,6 +1,6 @@
 
 angular.module("corner-pocket", [])
-.factory('$ngPouch', function($q, $parse, $rootScope){
+.factory('cornerPocket', function($q, $parse, $rootScope){
 
 	var db;
 
@@ -304,7 +304,7 @@ angular.module("corner-pocket", [])
 		init:function(name){
 			if(this.changes){//we've already initialized a db, lets turn off listening for that one.
 				this.changes.cancel();
-				console.log("---stope listening to " + this.name + "---");
+				console.log("---stop listening to " + this.name + "---");
 			}
 
 			this.name = name;
