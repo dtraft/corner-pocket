@@ -1,68 +1,10 @@
 
 angular.module("corner-pocket", [])
 .factory('cornerPocket', function($q, $parse, $rootScope){
-
 	var db;
 
-	//defining update event handler for docs
-	var onUpdate = function(event, change){
-		var self = this;
-
-		//stop firing if this doesn't effect this doc
-		if(self._id !== change.id){
-			return;
-		}
-		console.log(change);
-
-		$rootScope.$apply(function(){
-			//console.log("caught event!");					
-			//update this object "in-place".  Preserving reference to the scope object, just adjusting its values to match change.doc
-			$parse(function(){return self;}).assign($scope, change.doc);
-		});
-	};
-
-	//defining doc created handler for querys
-	//TODO - algorithm seems wasteful right now.  We unlisten to all PouchDocs, then reconstitute them from the post-extend PouchQuery
-	//Would be great to use the change to determine what action to take (add, or remove to PouchQuery rows)
-	//not sure how this would work for reduce queries
-	var onQueryUpdate = function(event, change){
-		var self = this;		
-		//use the reponse to "reconstitute" itself
-		db.query(self.$$fun, self.$$options, function(err, response){
-			$rootScope.$apply(function(){
-				//console.log("updating query...");
-
-				//stop listening to all pouchDocs
-				if(self.$$options){
-					if(self.$$options.include_docs){
-						//console.log(self.rows);
-						for(var i = 0; i<self.rows.length;i++){
-							self.rows[i].doc.stopListening();
-						}					
-					}
-				}
-
-				//update in place - won't overwrite changes since onQueryUpdate is only called for creation and deletion events (for now)
-				extend(self, response, true);		
-
-				//create PouchDocs if the query includes the docs.
-				if(self.$$options){
-					if(self.$$options.include_docs){
-						//console.log(self.rows);
-						for(var i = 0; i<self.rows.length;i++){
-							self.rows[i].doc = new PouchDoc(db, self.rows[i].doc, self.$$scope, self.$$autoSave);
-						}					
-					}
-				}			
-			});
-
-		});
-
-
-	};
-
 	//define pouchDoc object - contains save and delete functions w/syncing capabilities
-	function PouchDoc(doc, $scope){
+	function PouchDoc(doc, $scope, autoSave){
 		//let's check and be sure we're actually being passed on object
 		if(typeof doc != 'object'){
 			throw new Error("need to start with an object, if you want to use an Id, try $ngPouch.pouchDocFromId");
@@ -146,12 +88,12 @@ angular.module("corner-pocket", [])
 		//bind the event handlers to this object, so the 'this' in the update function is a reference to the doc itself.
 		_.bindAll(self, 'onUpdate');
 
-		//no need to much right now, just start listening for changes to this object.
+		//no need to do much right now, just start listening for changes to this object.
 		var eventName = "pdb-updated";
 		var noMoreUpdates = $rootScope.$on(eventName, self.onUpdate);
 
 		//set up watch on the doc if desired
-		if($scope){				
+		if(autoSave && $scope){				
 			self.unbind = watchDocInScope(self, $scope, db);
 		}
 
@@ -163,46 +105,17 @@ angular.module("corner-pocket", [])
 				self.unbind();
 			}
 		};
+
+		if($scope){
+			//remove event listeners on scope destroy
+			$scope.$on('$destroy', function(){
+				createdUnbind();
+				deletedUnbind();
+			});
+		}
 	};
 
-	//define & set up PouchQuery object
-	function PouchQuery(db, response, fun, options, $scope, autoSave){
-		var self = this;
-
-		extend(self, response);
-		//console.log(self);
-		//alert('test');
-		//create PouchDocs if the query includes the docs.
-		if(options.include_docs){
-			//console.log("here");
-			//console.log(autoSave);
-			for(var i = 0; i<self.rows.length;i++){
-				self.rows[i].doc = new PouchDoc(db, self.rows[i].doc, $scope, autoSave);
-			}					
-		}	
-
-		//give this response the ability to remember how it was made!
-		//property names are funky so we can NOT DELETE them in the extend function
-		self.$$fun = fun;
-		self.$$options = options;
-		self.$$scope = $scope;
-		self.$$autoSave = autoSave;
-
-		//attach event handlers to response object
-		self.onQueryUpdate = onQueryUpdate;
-		_.bindAll(self, 'onQueryUpdate');
-
-		//start listening for events							
-		var createdUnbind = $rootScope.$on("pdb-created", self.onQueryUpdate);
-		var deletedUnbind = $rootScope.$on("pdb-deleted", self.onQueryUpdate);
-
-		//on destruction of $scope, stop listening.  This will help prevent a massive build up of listeners.
-		$scope.$on("$destroy", function(){
-			createdUnbind();
-			deletedUnbind();
-		});			
-	}	
-
+	//define pouch collection object
 	function PouchCollection(docs, map, options, $scope){
 		var self = this;
 
@@ -288,14 +201,20 @@ angular.module("corner-pocket", [])
 				});
 			}
 		}
-
 		//bind the event handlers to this object, so the 'this' in the update function is a reference to the doc itself.
 		_.bindAll(self, 'onCollectionUpdate');
-
 		//start listening for events							
 		var createdUnbind = $rootScope.$on("pdb-created", self.onCollectionUpdate);
 		var deletedUnbind = $rootScope.$on("pdb-deleted", self.onCollectionUpdate);
-		//var updatedUnbind = $rootScope.$on("pdb-updated", self.onCollectionUpdate);				
+		//var updatedUnbind = $rootScope.$on("pdb-updated", self.onCollectionUpdate);	
+
+		if($scope){
+			//remove event listeners on scope destroy
+			$scope.$on('$destroy', function(){
+				createdUnbind();
+				deletedUnbind();
+			});
+		}	
 	}
 
 	//here's where we actually return the $ngPouch singleton with associated 'static' methods and properties
@@ -323,7 +242,7 @@ angular.module("corner-pocket", [])
 							//console.log("DELETED - " + change.id);
 							$rootScope.$emit("pdb-deleted", change, db);
 						} else if (change.doc._rev.split('-')[0] === '1') {
-							console.log("CREATED - " + change.id);
+							//console.log("CREATED - " + change.id);
 							$rootScope.$emit("pdb-created", change,db);
 						} else {
 							//console.log("UPDATED - " + change.id);
@@ -449,56 +368,6 @@ angular.module("corner-pocket", [])
 					}
 				}			
 			}
-			return deferred.promise;
-
-		},
-		list: function(query, channel, $scope){
-			//let's do the async thing for this bad bear as well
-			var deferred = $q.defer();
-
-			//get ref to singleton object & pouchDB instance
-			var ngPouch = this;
-			var db = ngPouch.db;
-
-			var predicate = _.matches(query);
-
-			var mapFunction = function(doc, emit){
-				if(predicate(doc) && _.contains(doc.channels, channel)){
-					emit(doc.created, null);
-				}
-			};
-
-			/*
-			//test to see if options were actually passed, and rearrange arguments if necessary
-			if(options.hasOwnProperty("$$nextSibling")){
-				autoSave = $scope;
-				$scope = options;				
-				options = {};
-			}
-			*/
-			db.query(mapFunction, {include_docs:true}, function(err, response){
-				if(err){
-					deferred.reject(err);
-				}else{			
-					deferred.resolve(new PouchCollection(_.pluck(response.rows, "doc"), mapFunction, $scope));
-				}
-			});
-
-			return deferred.promise;
-
-		},
-		bulkDocs:function(docs, options){
-			var deferred = $q.defer();
-			var db = this.db;
-
-			db.bulkDocs(docs, options, function(err, result){
-				if(err){
-					deferred.reject(err)
-				}else{
-					deferred.resolve(result);
-				}
-			});			
-
 			return deferred.promise;
 		}
 	}
