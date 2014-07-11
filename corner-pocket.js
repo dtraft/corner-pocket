@@ -327,6 +327,8 @@ angular.module("corner-pocket", [])
 			if(typeof options === 'function'){
 				passedMap = options;
 				options = {};
+			}else if(!options){
+				options = {};
 			}
 			
 			//default to include docs
