@@ -159,11 +159,10 @@ angular.module("corner-pocket", [])
 						//check each new result to ensure it meets the conditions
 						for(var i = 0; i < self.mapResults.length; i++){
 							var result = self.mapResults[i];
-							var include = false;
+							var include = true;
 							console.log(options);
 							if(options.startkey && options.endkey){
 								//various key types
-								include = true;
 								if(result.key instanceof Array){
 									console.log("key is array");
 									for(var w = 0; w < result.key.length; w++){
