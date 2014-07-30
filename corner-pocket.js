@@ -124,7 +124,7 @@ angular.module("corner-pocket", []).factory('cornerPocket', function($q, $parse,
                                         console.log("key: " + key);
                                         console.log("startKey: " + startKey);
                                         console.log("endKey: " + endKey);
-                                        if (key < startKey || key > endKey) {
+                                        if (key <= startKey || key >= endKey) {
                                             include = false;
                                         }
                                     }
