@@ -92,11 +92,15 @@ angular.module("corner-pocket", []).factory('cornerPocket', function($q, $parse,
             map(change.doc, self.emit);
             //check the result
             if (self.mapResults.length > 0) { //because create could result in more than one row
+                //check to makes sure we don't have this one already
+                var ids = _.pluck(self.docs, "_id");
+                if(ids.indexOf(change.id) !== -1){
+                    return;//we've already got this doc in the collection, pouchDoc will handle update event
+                }
                 //check each new result to ensure it meets the conditions
                 for (var i = 0; i < self.mapResults.length; i++) {
                     var result = self.mapResults[i];
                     var include = true;
-                    console.log(options);
                     if (options.startkey && options.endkey) {
                         //various key types
                         if (result.key instanceof Array) {
@@ -105,9 +109,6 @@ angular.module("corner-pocket", []).factory('cornerPocket', function($q, $parse,
                                 var key = result.key[w];
                                 var startKey = options.startkey[w];
                                 var endKey = options.endkey[w];
-                                console.log("key: " + key);
-                                console.log("startKey: " + startKey);
-                                console.log("endKey: " + endKey);
                                 if (key <= startKey || key >= endKey) {
                                     include = false;
                                 }
@@ -140,6 +141,7 @@ angular.module("corner-pocket", []).factory('cornerPocket', function($q, $parse,
             
         //this will be called on input or deletion
         self.onCollectionUpdate = function(event, change) {
+            console.log(event);
             var self = this;
             if(event.name === "pdb-deleted"){
                 $rootScope.$apply(function(){
@@ -151,14 +153,16 @@ angular.module("corner-pocket", []).factory('cornerPocket', function($q, $parse,
                     }
                 });
             }else{
+                console.log("here - " + event.name)
                 $rootScope.$apply(function(){
                     self.updateCollection(change);
                 }); 
-            }            
+            } 
+            event.stopPropagation();           
         };
         //bind the event handlers to this object, so the 'this' in the update function is a reference to the doc itself.
         _.bindAll(self, 'onCollectionUpdate');
-        //start listening for events							
+        //start listening for events						
         var createdUnbind = $rootScope.$on("pdb-created", self.onCollectionUpdate);
         var deletedUnbind = $rootScope.$on("pdb-deleted", self.onCollectionUpdate);
         var updatedUnbind = $rootScope.$on("pdb-updated", self.onCollectionUpdate);	
@@ -199,6 +203,7 @@ angular.module("corner-pocket", []).factory('cornerPocket', function($q, $parse,
                         } else {
                             //console.log("UPDATED - " + change.id);
                             $rootScope.$emit("pdb-updated", change);
+                            console.log("update");
                         }
                     }
                 });
