@@ -1,0 +1,13 @@
+{
+  "name": "Corner-pocket",
+  "version": "0.1.0",
+  "description": "util for Couchdb and angularjs",
+  "dependencies": {
+    "gulp": "^3.5.6"
+  },
+  "devDependencies": {
+    "gulp-util": "^3.0.0",
+    "gulp": "^3.8.6",
+    "gulp-jsbeautifier": "0.0.2"
+  }
+}
