@@ -186,14 +186,14 @@ angular.module("corner-pocket", [])
 	//here's where we actually return the $ngPouch singleton with associated 'static' methods and properties
 	return {
 		//start up db
-		init:function(name){
+		init:function(name, options){
 			if(this.changes){//we've already initialized a db, lets turn off listening for that one.
 				this.changes.cancel();
 				console.log("---stop listening to " + this.name + "---");
 			}
 
 			this.name = name;
-			db = new PouchDB(name);
+			db = new PouchDB(name, options);
 			this.db = db;
 			var ngPouch = this;
 
