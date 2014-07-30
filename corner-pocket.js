@@ -153,12 +153,10 @@ angular.module("corner-pocket", []).factory('cornerPocket', function($q, $parse,
                     }
                 });
             }else{
-                console.log("here - " + event.name)
                 $rootScope.$apply(function(){
                     self.updateCollection(change);
                 }); 
-            } 
-            event.stopPropagation();           
+            }          
         };
         //bind the event handlers to this object, so the 'this' in the update function is a reference to the doc itself.
         _.bindAll(self, 'onCollectionUpdate');
@@ -203,7 +201,6 @@ angular.module("corner-pocket", []).factory('cornerPocket', function($q, $parse,
                         } else {
                             //console.log("UPDATED - " + change.id);
                             $rootScope.$emit("pdb-updated", change);
-                            console.log("update");
                         }
                     }
                 });
