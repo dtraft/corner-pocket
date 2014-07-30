@@ -15,7 +15,7 @@ angular.module("corner-pocket", [])
 		//bind the event handlers to this object, so the 'this' in the update function is a reference to the doc itself.
 		_.bindAll(self, 'onUpdate');
 		//no need to do much right now, just start listening for changes to this object.
-		self.stopListening = $rootScope.$on("pdb-updated", self.onUpdate);
+	self.stopListening = $rootScope.$on("pdb-updated", self.onUpdate);
 	}
 	//assign functions (defined above) to this object
 	PouchDoc.prototype.save = function(options){
@@ -182,14 +182,14 @@ angular.module("corner-pocket", [])
 	//here's where we actually return the $ngPouch singleton with associated 'static' methods and properties
 	return {
 		//start up db
-		init:function(name){
+		init:function(name, options){
 			if(this.changes){//we've already initialized a db, lets turn off listening for that one.
 				this.changes.cancel();
 				console.log("---stop listening to " + this.name + "---");
 			}
 
 			this.name = name;
-			db = new PouchDB(name);
+			db = new PouchDB(name, options);
 			this.db = db;
 			var ngPouch = this;
 
