@@ -126,6 +126,14 @@ angular.module("corner-pocket", []).factory('cornerPocket', function($q, $parse,
                         console.log("added new Row!");
                     }
                 }
+            }else{
+                //no results emitted, lets remove any docs with this id that were already in our collection
+                for (var i = self.docs.length - 1; i >= 0; i--) {
+                    if (self.docs[i]._id === change.id) {
+                        self.docs.splice(i, 1);
+                        console.log("deleted row");
+                    }
+                }
             }
             delete self.mapResults;
         };
@@ -133,9 +141,8 @@ angular.module("corner-pocket", []).factory('cornerPocket', function($q, $parse,
         //this will be called on input or deletion
         self.onCollectionUpdate = function(event, change) {
             var self = this;
-            //doc was deleted, let's see if it's in our collection
-            if (event.name === "pdb-deleted") {
-                $rootScope.$apply(function() {
+            if(event.name === "pdb-deleted"){
+                $rootScope.$apply(function(){
                     for (var i = self.docs.length - 1; i >= 0; i--) {
                         if (self.docs[i]._id === change.id) {
                             self.docs.splice(i, 1);
@@ -143,21 +150,12 @@ angular.module("corner-pocket", []).factory('cornerPocket', function($q, $parse,
                         }
                     }
                 });
-            } else if (event.name === "pdb-created") { //doc was created, lets test to see if it meets the query condition
-                //reset the map function
-                $rootScope.$apply(function(){
-                    self.updateCollection(change);
-                });              
-            }else if (event.name === 'pdb-updated'){                
-                var currentIds = _.pluck(self.docs, "_id");
-                if(currentIds.indexOf(change.id) !== -1){
-                    return;
-                }
+            }else{
                 $rootScope.$apply(function(){
                     self.updateCollection(change);
                 }); 
-            }
-        }
+            }            
+        };
         //bind the event handlers to this object, so the 'this' in the update function is a reference to the doc itself.
         _.bindAll(self, 'onCollectionUpdate');
         //start listening for events							
