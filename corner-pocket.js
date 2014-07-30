@@ -87,6 +87,49 @@ angular.module("corner-pocket", []).factory('cornerPocket', function($q, $parse,
                 value: value
             });
         }
+        self.updateCollection = function(change) {
+            self.mapResults = [];
+            map(change.doc, self.emit);
+            //check the result
+            if (self.mapResults.length > 0) { //because create could result in more than one row
+                //check each new result to ensure it meets the conditions
+                for (var i = 0; i < self.mapResults.length; i++) {
+                    var result = self.mapResults[i];
+                    var include = true;
+                    console.log(options);
+                    if (options.startkey && options.endkey) {
+                        //various key types
+                        if (result.key instanceof Array) {
+                            console.log("key is array");
+                            for (var w = 0; w < result.key.length; w++) {
+                                var key = result.key[w];
+                                var startKey = options.startkey[w];
+                                var endKey = options.endkey[w];
+                                console.log("key: " + key);
+                                console.log("startKey: " + startKey);
+                                console.log("endKey: " + endKey);
+                                if (key <= startKey || key >= endKey) {
+                                    include = false;
+                                }
+                            }
+                        } else if (result.key instanceof Object) {
+                            console.log("key is object");
+                            include = false;
+                        } else if (typeof result.key === 'string') {
+                            console.log("key is string");
+                            include = false;
+                        }
+                    }
+                    if (include) {
+                        //add new row
+                        self.docs.push(new PouchDoc(change.doc, $scope));
+                        console.log("added new Row!");
+                    }
+                }
+            }
+            delete self.mapResults;
+        };
+            
         //this will be called on input or deletion
         self.onCollectionUpdate = function(event, change) {
             var self = this;
@@ -102,49 +145,17 @@ angular.module("corner-pocket", []).factory('cornerPocket', function($q, $parse,
                 });
             } else if (event.name === "pdb-created") { //doc was created, lets test to see if it meets the query condition
                 //reset the map function
-                //run the function
-                self.mapResults = [];
-                map(change.doc, self.emit);
-                //check the result
-                $rootScope.$apply(function() {
-                    if (self.mapResults.length > 0) { //because create could result in more than one row
-                        //check each new result to ensure it meets the conditions
-                        for (var i = 0; i < self.mapResults.length; i++) {
-                            var result = self.mapResults[i];
-                            var include = true;
-                            console.log(options);
-                            if (options.startkey && options.endkey) {
-                                //various key types
-                                if (result.key instanceof Array) {
-                                    console.log("key is array");
-                                    for (var w = 0; w < result.key.length; w++) {
-                                        var key = result.key[w];
-                                        var startKey = options.startkey[w];
-                                        var endKey = options.endkey[w];
-                                        console.log("key: " + key);
-                                        console.log("startKey: " + startKey);
-                                        console.log("endKey: " + endKey);
-                                        if (key <= startKey || key >= endKey) {
-                                            include = false;
-                                        }
-                                    }
-                                } else if (result.key instanceof Object) {
-                                    console.log("key is object");
-                                    include = false;
-                                } else if (typeof result.key === 'string') {
-                                    console.log("key is string");
-                                    include = false;
-                                }
-                            }
-                            if (include) {
-                                //add new row
-                                self.docs.push(new PouchDoc(change.doc, $scope));
-                                console.log("added new Row!");
-                            }
-                        }
-                    }
-                    delete self.mapResults; //no longer needed					
-                });
+                $rootScope.$apply(function(){
+                    self.updateCollection(change);
+                });              
+            }else if (event.name === 'pdb-updated'){                
+                var currentIds = _.pluck(self.docs, "_id");
+                if(currentIds.indexOf(change.id) !== -1){
+                    return;
+                }
+                $rootScope.$apply(function(){
+                    self.updateCollection(change);
+                }); 
             }
         }
         //bind the event handlers to this object, so the 'this' in the update function is a reference to the doc itself.
@@ -152,12 +163,13 @@ angular.module("corner-pocket", []).factory('cornerPocket', function($q, $parse,
         //start listening for events							
         var createdUnbind = $rootScope.$on("pdb-created", self.onCollectionUpdate);
         var deletedUnbind = $rootScope.$on("pdb-deleted", self.onCollectionUpdate);
-        //var updatedUnbind = $rootScope.$on("pdb-updated", self.onCollectionUpdate);	
+        var updatedUnbind = $rootScope.$on("pdb-updated", self.onCollectionUpdate);	
         if ($scope) {
             //remove event listeners on scope destroy
             $scope.$on('$destroy', function() {
                 createdUnbind();
                 deletedUnbind();
+                updatedUnbind();
             });
         }
     }
