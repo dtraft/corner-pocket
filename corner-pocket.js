@@ -16,6 +16,10 @@ angular.module("corner-pocket", [])
 		_.bindAll(self, 'onUpdate');
 		//no need to do much right now, just start listening for changes to this object.
 		self.stopListening = $rootScope.$on("pdb-updated", self.onUpdate);
+        
+        if($scope){
+            $scope.$on("$destroy", self.stopListening);
+        }
 	}
 	//assign functions (defined above) to this object
 	PouchDoc.prototype.save = function(options){
