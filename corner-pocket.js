@@ -141,7 +141,6 @@ angular.module("corner-pocket", []).factory('cornerPocket', function($q, $parse,
             
         //this will be called on input or deletion
         self.onCollectionUpdate = function(event, change) {
-            console.log(event);
             var self = this;
             if(event.name === "pdb-deleted"){
                 $rootScope.$apply(function(){
