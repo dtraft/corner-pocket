@@ -11,109 +11,72 @@ angular.module("corner-pocket", [])
 			return;						
 		}	
 		var self = this;
-
-		extend(self, doc);
-		//assign functions (defined above) to this object
-		self.save = function(options){
-			var self = this;
-			var deferred = $q.defer();
-			var doc = angular.copy(self);			
-			//delete any functions on this object - necessary because they include references (which can't be saved by pouchDB)
-			var functions = _.functions(self);
-			//console.log(functions);
-			for(var i = 0; i < functions.length; i++){
-				delete doc[functions[i]];
-			}	
-			var now = new Date();
-			doc.updated = now.toISOString();		
-			//now save it back to the db.
-			db.put(doc, options, function(err, response){
-				if(err){
-					deferred.reject(err);//reject if there's a problem
-				}else{					
-					deferred.resolve(response);
-				}
-			});					
-			return deferred.promise;
-		};
-
-		self.remove = function(options){
-			//TODO
-			var self = this;
-			var deferred = $q.defer();
-			var doc = angular.copy(self);			
-			//delete any functions on this object - necessary because they include references (which can't be saved by pouchDB)
-			var functions = _.functions(self);
-			//console.log(functions);
-			for(var i = 0; i < functions.length; i++){
-				delete doc[functions[i]];
-			}	
-			var now = new Date();
-			doc.updated = now.toISOString();		
-			//now remove it from the db.
-			db.remove(doc, options, function(err, response){
-				if(err){
-					deferred.reject(err);//reject if there's a problem
-				}else{					
-					deferred.resolve(response);
-				}
-			});					
-			return deferred.promise;
-
-		};
-
-		self.onUpdate = function(event, change){
-			var self = this;
-
-			//stop firing if this doesn't effect this doc
-			if(self._id !== change.id){
-				return;
-			}
-
-			$rootScope.$apply(function(){
-				//console.log("caught event!");					
-
-				if(self.unbind){
-					self.unbind();//stop listening temporarily, so we don't update twice
-				}		
-				//update this object "in-place".  Preserving reference to the scope object, just adjusting its values to match change.doc		
-				extend(self, change.doc);
-				if(self.unbind){//start listening again, if necessary				
-					self.unbind = watchDocInScope(self, $scope, db);
-				}
-
-			});
-		};
-
+		angular.extend(self, doc);
 		//bind the event handlers to this object, so the 'this' in the update function is a reference to the doc itself.
 		_.bindAll(self, 'onUpdate');
-
 		//no need to do much right now, just start listening for changes to this object.
-		var eventName = "pdb-updated";
-		var noMoreUpdates = $rootScope.$on(eventName, self.onUpdate);
-
-		//set up watch on the doc if desired
-		if(autoSave && $scope){				
-			self.unbind = watchDocInScope(self, $scope, db);
-		}
-
-		self.stopListening = function(){
-			if(noMoreUpdates){
-				noMoreUpdates();
+		self.stopListening = $rootScope.$on("pdb-updated", self.onUpdate);
+	}
+	//assign functions (defined above) to this object
+	PouchDoc.prototype.save = function(options){
+		var self = this;
+		var deferred = $q.defer();
+		var doc = angular.copy(self);			
+		//delete any functions on this object - necessary because they include references (which can't be saved by pouchDB)
+		var functions = _.functions(self);
+		//console.log(functions);
+		for(var i = 0; i < functions.length; i++){
+			delete doc[functions[i]];
+		}	
+		var now = new Date();
+		doc.updated = now.toISOString();		
+		//now save it back to the db.
+		db.put(doc, options, function(err, response){
+			if(err){
+				deferred.reject(err);//reject if there's a problem
+			}else{					
+				deferred.resolve(response);
 			}
-			if(self.unbind){
-				self.unbind();
-			}
-		};
-
-		if($scope){
-			//remove event listeners on scope destroy
-			$scope.$on('$destroy', function(){
-				createdUnbind();
-				deletedUnbind();
-			});
-		}
+		});					
+		return deferred.promise;
 	};
+
+	PouchDoc.prototype.remove = function(options){
+		//TODO
+		var self = this;
+		var deferred = $q.defer();
+		var doc = angular.copy(self);			
+		//delete any functions on this object - necessary because they include references (which can't be saved by pouchDB)
+		var functions = _.functions(self);
+		//console.log(functions);
+		for(var i = 0; i < functions.length; i++){
+			delete doc[functions[i]];
+		}	
+		var now = new Date();
+		doc.updated = now.toISOString();		
+		//now remove it from the db.
+		db.remove(doc, options, function(err, response){
+			if(err){
+				deferred.reject(err);//reject if there's a problem
+			}else{					
+				deferred.resolve(response);
+			}
+		});					
+		return deferred.promise;
+	};
+
+	PouchDoc.prototype.onUpdate = function(event, change){
+		var self = this;
+		//stop firing if this doesn't effect this doc
+		if(self._id !== change.id){
+			return;
+		}
+		$rootScope.$apply(function(){	
+			//update this object "in-place".  Preserving reference to the scope object, just adjusting its values to match change.doc		
+			extend(self, change.doc);
+		});
+	};
+	
 
 	//define pouch collection object
 	function PouchCollection(docs, map, options, $scope){
