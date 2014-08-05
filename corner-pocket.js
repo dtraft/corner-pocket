@@ -1,7 +1,7 @@
 angular.module("corner-pocket", []).factory('cornerPocket', function($q, $parse, $rootScope) {
     var db;
     //define pouchDoc object - contains save and delete functions w/syncing capabilities
-    function PouchDoc(doc, $scope, autoSave) {
+    function PouchDoc(doc, isRemote, $scope) {
         //let's check and be sure we're actually being passed on object
         if (typeof doc != 'object') {
             throw new Error("need to start with an object, if you want to use an Id, try $ngPouch.pouchDocFromId");
@@ -11,6 +11,7 @@ angular.module("corner-pocket", []).factory('cornerPocket', function($q, $parse,
         angular.extend(self, doc);
         //bind the event handlers to this object, so the 'this' in the update function is a reference to the doc itself.
         _.bindAll(self, 'onUpdate');
+        self.isRemote = isRemote;
         //no need to do much right now, just start listening for changes to this object.
         self.stopListening = $rootScope.$on("pdb-updated", self.onUpdate);
         if ($scope) {
@@ -30,6 +31,7 @@ angular.module("corner-pocket", []).factory('cornerPocket', function($q, $parse,
         }
         var now = new Date();
         doc.updated = now.toISOString();
+        doc.remote = self.isRemote;
         //now save it back to the db.
         db.put(doc, options, function(err, response) {
             if (err) {
@@ -53,8 +55,10 @@ angular.module("corner-pocket", []).factory('cornerPocket', function($q, $parse,
         }
         var now = new Date();
         doc.updated = now.toISOString();
+        doc._deleted = true;
+        doc.remote = self.isRemote;
         //now remove it from the db.
-        db.remove(doc, options, function(err, response) {
+        db.put(doc, options, function(err, response) {
             if (err) {
                 deferred.reject(err); //reject if there's a problem
             } else {
@@ -79,7 +83,7 @@ angular.module("corner-pocket", []).factory('cornerPocket', function($q, $parse,
         var self = this;
         self.docs = docs;
         for (var i = 0; i < self.docs.length; i++) {
-            self.docs[i] = new PouchDoc(self.docs[i], $scope);
+            self.docs[i] = new PouchDoc(self.docs[i], self.isRemote, $scope);
         }
         self.emit = function(key, value) {
             self.mapResults.push({
@@ -123,7 +127,7 @@ angular.module("corner-pocket", []).factory('cornerPocket', function($q, $parse,
                     }
                     if (include) {
                         //add new row
-                        self.docs.push(new PouchDoc(change.doc, $scope));
+                        self.docs.push(new PouchDoc(change.doc, self.isRemote, $scope));
                         console.log("added new Row!");
                     }
                 }
@@ -183,6 +187,9 @@ angular.module("corner-pocket", []).factory('cornerPocket', function($q, $parse,
             this.name = name;
             db = new PouchDB(name, options);
             this.db = db;
+            if(options){
+                this.isRemote = options.isRemote;
+            }
             var ngPouch = this;
             //start listening to changes
             db.info(function(err, info) {
@@ -219,6 +226,7 @@ angular.module("corner-pocket", []).factory('cornerPocket', function($q, $parse,
                 var now = new Date();
                 doc.created = now.toISOString();
                 doc.updated = now.toISOString();
+                doc.remote = this.isRemote;
                 //delete any functions on this object - necessary because they include references (which can't be saved by pouchDB)
                 var functions = _.functions(doc);
                 //console.log(functions);
@@ -232,10 +240,10 @@ angular.module("corner-pocket", []).factory('cornerPocket', function($q, $parse,
                     doc._id = response.id;
                     doc._rev = response.rev;
                     console.log(doc);
-                    deferred.resolve(new PouchDoc(doc, $scope)); //return reference to the doc back to caller
+                    deferred.resolve(new PouchDoc(doc, ngPouch.isRemote, $scope)); //return reference to the doc back to caller
                 });
             } else {
-                deferred.resolve(new PouchDoc(doc, $scope)); //return reference to the doc back to caller
+                deferred.resolve(new PouchDoc(doc, ngPouch.isRemote, $scope)); //return reference to the doc back to caller
             }
             return deferred.promise;
         },
@@ -257,7 +265,7 @@ angular.module("corner-pocket", []).factory('cornerPocket', function($q, $parse,
                 if (err) {
                     deferred.reject(err);
                 } else {
-                    deferred.resolve(new PouchDoc(doc, $scope));
+                    deferred.resolve(new PouchDoc(doc, ngPouch.isRemote, $scope));
                 }
             });
             return deferred.promise; //return promise to caller
