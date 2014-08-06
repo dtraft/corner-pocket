@@ -113,8 +113,9 @@ angular.module("corner-pocket", []).factory('cornerPocket', function($q, $parse,
                                 var key = result.key[w];
                                 var startKey = options.startkey[w];
                                 var endKey = options.endkey[w];
-                                if (key <= startKey || key >= endKey) {
+                                if (key < startKey || key > endKey) {
                                     include = false;
+                                    break;
                                 }
                             }
                         } else if (result.key instanceof Object) {
@@ -127,7 +128,7 @@ angular.module("corner-pocket", []).factory('cornerPocket', function($q, $parse,
                     }
                     if (include) {
                         //add new row
-                        self.docs.push(new PouchDoc(change.doc, self.isRemote, $scope));
+                        self.docs.push(new PouchDoc(change.doc, options.isRemote, $scope));
                         console.log("added new Row!");
                     }
                 }
