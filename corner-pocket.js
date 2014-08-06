@@ -83,7 +83,7 @@ angular.module("corner-pocket", []).factory('cornerPocket', function($q, $parse,
         var self = this;
         self.docs = docs;
         for (var i = 0; i < self.docs.length; i++) {
-            self.docs[i] = new PouchDoc(self.docs[i], self.isRemote, $scope);
+            self.docs[i] = new PouchDoc(self.docs[i], options.isRemote, $scope);
         }
         self.emit = function(key, value) {
             self.mapResults.push({
@@ -285,6 +285,7 @@ angular.module("corner-pocket", []).factory('cornerPocket', function($q, $parse,
             }
             //default to include docs
             options.include_docs = true;
+            options.isRemote = ngPouch.isRemote;
             var map;
             //run query function
             var runQuery = function() {
