@@ -11,7 +11,7 @@ angular.module("corner-pocket", []).factory('cornerPocket', function($q, $parse,
         angular.extend(self, doc);
         //bind the event handlers to this object, so the 'this' in the update function is a reference to the doc itself.
         _.bindAll(self, 'onUpdate');
-        self.isRemote = isRemote;
+        self.remote = isRemote;
         //no need to do much right now, just start listening for changes to this object.
         self.stopListening = $rootScope.$on("pdb-updated", self.onUpdate);
         if ($scope) {
@@ -31,7 +31,6 @@ angular.module("corner-pocket", []).factory('cornerPocket', function($q, $parse,
         }
         var now = new Date();
         doc.updated = now.toISOString();
-        doc.remote = self.isRemote;
         //now save it back to the db.
         db.put(doc, options, function(err, response) {
             if (err) {
@@ -56,7 +55,6 @@ angular.module("corner-pocket", []).factory('cornerPocket', function($q, $parse,
         var now = new Date();
         doc.updated = now.toISOString();
         doc._deleted = true;
-        doc.remote = self.isRemote;
         //now remove it from the db.
         db.put(doc, options, function(err, response) {
             if (err) {
