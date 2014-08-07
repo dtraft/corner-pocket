@@ -74,8 +74,11 @@ angular.module("corner-pocket", []).factory('cornerPocket', function($q, $parse,
             return;
         }
         $rootScope.$apply(function() {
-            //update this object "in-place".  Preserving reference to the scope object, just adjusting its values to match change.doc		
+            //update this object "in-place".  Preserving reference to the scope object, just adjusting its values to match change.doc
+            //the only thing we shouldn't change is doc.remote
+            var remote = self.remote;		
             extend(self, change.doc);
+            self.remote = remote;
         });
     };
     //define pouch collection object
