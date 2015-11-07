@@ -1,0 +1,134 @@
+<!--Modal Dialogs-->
+
+<!--Add New-->
+<script type="text/ng-template" id="AddNew-Content.html">
+  <div class="modal-dialog">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h4 class="modal-title">{{mode}}</h4>
+    </div>
+    <div class="modal-body">
+      <form role="form">
+        <div class="form-group">
+          <label for="newName">Name</label>
+          <input type="text" ng-model='newItem.name' class="form-control" id="newName" placeholder="Enter name..." focus="true"/>
+        </div>
+        <div class="form-group">
+          <label for="newTag">Tag</label>
+          <select ng-model='newItem.tag' class="form-control" id="newTag" placeholder="Enter tag...">
+            <option>Descriptive</option>
+            <option>Component-Based</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="icon">Icon (<a target="_blank" href='http://ionicons.com'>Click here for a full list</a>)</label>
+          <input type="text" ng-model='newItem.icon' class="form-control" id="icon" placeholder="Search for icon..." animation='am-fade' data-min-length='0' data-html="1" ng-options="o.value as o.label for o in icons" limit='10' bs-typeahead/>
+        </div>
+      </form>
+      
+    </div>
+   <div class="modal-footer">
+      <button type="button" class="btn btn-default" ng-click="cancel()">Close</button>
+      <button type="button" class="btn btn-primary" ng-click="ok()" ng-disabled="newItem.tag == undefined || newItem.name == undefined || newItem.icon == undefined">Save</button>
+    </div>
+  </div><!-- /.modal-content -->
+</div><!-- /.modal-dialog -->
+</script>
+<ng-include src="'partials/appHeader.html'"></ng-include>
+
+<div id="master-container" class="container">
+  <div class="row">
+    <div id='nav-pane' class="col-md-2">
+      <ng-include src="'partials/navPane.html'"></ng-include>
+    </div>   
+    <div class="col-md-10">
+      <div class="row">
+        <div class="col-md-12"><h3>Libraries</h3></div>
+      </div>
+      <div class="row">
+        <div class="col-md-12">
+          <div class="panel panel-default">
+            <div class="panel-body">
+
+              <div class="row top-bar">
+                <div class='col-md-9 column'>
+                  <ol class="breadcrumb">
+                    <li><a href="#">Home</a></li>
+                    <li class='active'>Libraries</li>
+                  </ol>
+                </div>
+                <div class='col-md-3 column'>
+                  <span class="status-pane">
+                    <span class='status-info' ng-show="showStatus">
+                      <img src='img/loader.gif' ng-hide="status == 'Saved!'"/>
+                      <img src='img/check.png' ng-show="status == 'Saved!'"/>
+                      {{status}}
+                    </span>              
+                  </span>
+                  <!--INsert loading icon here-->
+
+                </div>
+              </div>
+
+              <div class="row">
+                <div class="col-md-8">
+                  <div class="input-group">
+                    <span class="input-group-addon">
+                      <span class="glyphicon glyphicon-search"></span>
+                    </span>
+                    <input type="text" class="form-control dropdown-toggle" placeholder="Search Libraries..." ng-model='searchQuery'>
+                    <ul class="dropdown-menu search-bar-dropdown">
+                      <li ng-repeat="choice in items | filter: searchQuery">
+                        <a href="#/libraries/{{choice._id}}/components">{{choice.name}}</a>
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+                <div class="col-md-2 col-md-offset-2 right-align">
+                  <button type="button" class="btn btn-primary" ng-click='addNewDialogOpen()'>
+                  	<span class="glyphicon glyphicon-plus"></span>
+                  </button>
+                </div>
+              </div>
+
+
+              <br/>
+              <div class="row">          
+                <div class="col-md-4 category-pane">
+                  <tabset type="pills" direction='left' class="categories"  >
+                    <tab heading="{{tag}}" ng-repeat="tag in tags" select='setTag(tag)'></tab>
+                  </tabset>
+
+                </div>
+
+                <div class='col-md-8'>
+                  <div class="panel panel-default">
+                    <div class="panel-body">               
+
+                      <div class="row listing" ng-repeat="item in items | filter: {tag:selectedTag}">
+                        <div class='col-md-9'>
+                          <a href="#/libraries/{{item._id}}/components">{{item.name}}</a>
+                        </div>
+                        <div class='col-md-1'>
+                          <span class="glyphicon glyphicon-edit" ng-click="updateItem(item._id)"></span>
+                        </div>
+                        <div class='col-md-2'>
+                          <span class="glyphicon glyphicon-trash" ng-click="deleteItem(item._id)"></span>
+                        </div>
+                      </div>              
+
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+
+            </div>
+          </div>
+        </div>
+      </div>
+      </div>
+  </div>
+</div>
+
+

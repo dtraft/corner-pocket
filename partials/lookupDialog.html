@@ -1,0 +1,58 @@
+<!--Look Up Table-->
+<div class="modal-dialog large-modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h4 class="modal-title" ng-click="rename = true" ng-hide="rename">{{lookupTable.name}}</h4>
+      <input type="text" ng-model='lookupTable.name' class="form-control" id="newName" ng-show="rename" ng-blur='rename = false' focus='rename' ng-enter='rename = false' ng-change="!lookupTable._id || (librarySave.status = 'Save To Library')" autofocus/>
+    </div>
+    <div class="modal-body">
+
+      <table class="table-bordered lookupTable">
+        <tr>
+          <th>          
+          </th>
+          <th ng-repeat="condition in lookupTable.xConditions track by $index">
+            <input type='text' class="form-control" ng-model='condition' placeholder='New Condition' ng-blur="changeColumn($index, condition)" ng-change="!lookupTable._id || (librarySave.status = 'Save To Library')"/>
+          </th>
+          <th>
+            <input type='text' class="form-control" ng-model="view.newXCondition" placeholder='Type to Add New' ng-enter="view.newXCondition == '' || addNewColumn()" ng-blur="view.newXCondition == '' || addNewColumn()" ng-change="!lookupTable._id || (librarySave.status = 'Save To Library')"/>
+          </th>
+        </tr>
+        <tr ng-repeat="condition in lookupTable.yConditions track by $index">
+          <td>
+            <input type='text' class="form-control" ng-model='condition' placeholder='New Condition' ng-blur="changeRow($index, condition)" ng-change="librarySave.status = 'Save To Library'"/>
+          </td>
+          <td ng-repeat="condition in lookupTable.xConditions track by $index">
+            <input type='text' class="form-control" ng-model='lookupTable.optionCells[$parent.$index][$index]' ng-change="!lookupTable._id || (librarySave.status = 'Save To Library')"/>
+          </td>
+          <td>          
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <input type='text' class="form-control" ng-model="view.newYCondition" placeholder='Type to Add New' ng-enter="view.newYCondition == '' || addNewRow()" ng-blur="view.newYCondition == '' || addNewRow()" ng-change="!lookupTable._id || (librarySave.status = 'Save To Library')"/>
+          </td>
+          <td ng-repeat="condition in lookupTable.xConditions track by $index">
+          </td>
+          <td>            
+          </td>
+        </tr>
+        
+      </table>
+    </div>
+   <div class="modal-footer">
+      <button type="button" class="btn btn-default" ng-click="cancel()">Close</button>
+      <button type="button" class="btn btn-danger" ng-show="lookupTable._id" ng-click="deleteFromLibrary()">{{libraryDelete.status}}</button>
+      <button type="button" class="btn btn-primary" ng-click="saveToComponent()" ng-disabled="lookupTable.xConditions.length == 0 || lookupTable.yConditions.length == 0">Use As Custom</button>
+      <!--Change input lookupTable to custom and write in raw lookupJSON to input-->
+      
+      <!--<button type="button" class="btn btn-primary" ng-click="saveToLibrary()" ng-disabled="lookupTable.xConditions.length == 0 || lookupTable.yConditions.length == 0" >
+        {{librarySave.status}}
+      </button>-->
+      <!--Save changes to the master lookup in the library, but don't close.  Show that is has been saved to library.  Then the user can either hit close or they can save to component as a custom lookup table-->
+      
+    </div>
+  </div><!-- /.modal-content -->
+</div><!-- /.modal-dialog -->
+
+

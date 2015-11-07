@@ -1,0 +1,159 @@
+<ng-include src="'partials/appHeader.html'"></ng-include>
+
+<div id="master-container" class="container">
+  <div class="row">
+    <div id='nav-pane' class="col-md-2">
+      <ng-include src="'partials/navPane.html'"></ng-include>
+    </div>   
+    <div class="col-md-10">
+      <div class="row">
+        <div class="col-md-12"><h3>Settings</h3></div>
+      </div>
+      <div class="row">
+        <div class="col-md-12">
+          <div class="panel panel-default">
+            <div class="panel-body">
+
+              <div class="row top-bar">
+                <div class='col-md-9 column'>
+                  <ol class="breadcrumb">
+                    <li><a href="#">Home</a></li>
+                    <li class='active'>Settings</li>
+                  </ol>
+                </div>
+                <div class='col-md-3 column'>
+                  <span class="status-pane">
+                    <span class='status-info' ng-show="showStatus">
+                      <img src='img/loader.gif' ng-hide="status == 'Saved!'"/>
+                      <img src='img/check.png' ng-show="status == 'Saved!'"/>
+                      {{status}}
+                    </span>              
+                  </span>
+                  <!--INsert loading icon here-->
+
+                </div>
+                </div>
+              
+              <div class='row'>
+                <div class="col-md-12">
+                  <tabset>
+                    <tab heading='Account Settings'>
+                      Here's where we'll show basic account settings and tools (change email, password, first/last name, etc.)
+                    </tab>
+
+                    <tab heading='Manage Users'>
+                      <table class='table'>
+                        <tr>
+                          <th>User</th>
+                          <th>Email</th>
+                          <th>Role</th>
+                          <th>Status</th>
+                          <th>Remove User</th>
+                        </tr>
+
+                        <tr ng-repeat="user in users" ng-class='{italic:!user.displayName}'>
+                          <td>{{user.displayName}}</td>
+                          <td>{{user.username}}</td>
+                          <td>
+                            <select class='form-control' ng-model='user.role' ng-change="updateUserRole(user)">
+                              <option value='0'>Admin</option>
+                              <option value='1'>Editor</option>
+                              <option value='2'>User</option>
+                            </select>
+                          </td>
+                          <td>
+                            <span ng-if='user.displayName'>Active</span>  
+                            <span ng-if='!user.displayName'>Pending</span>  
+                          </td>
+                          <td style="padding-left:25px;"><span class="glyphicon glyphicon-remove" ng-click="removeUser(user)"></span></td>
+                        </tr>
+                      </table>
+                      <a ng-click='inviteNewUsers()'>Invite New User(s)</a>
+                    </tab>
+                    <tab heading='Group Settings'>
+                      <br/>
+                      <div class='row'>
+                        <div class='col-md-6'>
+                          <form role="form">
+                            <div class="form-group">
+                              <label for="groupName">Group Name</label>
+                              <input type="text" ng-model='group.name' class="form-control" id="groupName" placeholder="Enter name..." autofocus/>
+                            </div>
+                          </form>
+                          <button type="button" class="btn btn-primary" ng-click="saveGroup()" ng-disabled="group.name === undefined || group.name === ''">Save</button>
+                        </div>     
+                      </div>                      
+                      <a ng-click='createNewGroup()'>Create New Group</a>
+                    </tab>
+                  </tabset>
+                </div>                
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      </div>
+  </div>
+</div>
+
+
+<!--Invite Users-->
+<script type="text/ng-template" id="invite-Content.html">
+  <div class="modal-dialog">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h4 class="modal-title">Invite Users to Join {{user.info.activeGroup.name}}</h4>
+    </div>
+    <div class="modal-body">
+      <b>Enter email address or addresses and roles below</b>
+      <table class='table'>
+        <tr>          
+          <th>Email</th>
+          <th>Role</th>
+          <th></th>
+        </tr>
+        
+        <tr ng-repeat='user in users'>          
+          <td><input type='text' class='form-control' placeholder='Invite New User' ng-model='user.email'/></td>
+          <td>
+            <select class='form-control' ng-model='user.role'>
+              <option value='2'>User</option>
+              <option value='1'>Editor</option>
+              <option value='0'>Admin</option>             
+            </select>
+          </td>
+          <td style='vertical-align: middle;'><span class='glyphicon glyphicon-remove' ng-click='removeUser(user)'></span></td>
+        </tr>         
+      </table>
+      <a ng-click='addNewUser()'>Add User</a>
+    </div>
+   <div class="modal-footer">
+      <button type="button" class="btn btn-default" ng-click="cancel()">Close</button>
+      <button type="button" class="btn btn-primary" ng-click="ok()">Invite</button>
+    </div>
+  </div><!-- /.modal-content -->
+</div><!-- /.modal-dialog -->
+</script>
+
+<!--Create Group-->
+<script type="text/ng-template" id="newGroup-Content.html">
+  <div class="modal-dialog">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h4 class="modal-title">Create New Group</h4>
+    </div>
+    <div class="modal-body">
+      <form class="form">
+        <div class="form-group">
+          <label for="newName">Group Name</label>
+          <input type="text" ng-model='group.name' class="form-control" id="newName" placeholder="Enter new group name..."/>
+        </div>
+      </form>
+    </div>
+   <div class="modal-footer">
+      <button type="button" class="btn btn-default" ng-click="cancel()">Close</button>
+      <button type="button" class="btn btn-primary" ng-click="ok()">Create</button>
+    </div>
+  </div><!-- /.modal-content -->
+</div><!-- /.modal-dialog -->
+</script>

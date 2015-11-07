@@ -1,0 +1,261 @@
+<!--Modal Dialogs-->
+
+<!--Add New-->
+<script type="text/ng-template" id="AddNew-Content.html">
+  <div class="modal-dialog">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h4 class="modal-title">{{mode}}</h4>
+    </div>
+    <div class="modal-body">
+    
+      <form role="form">
+        <div class="form-group">
+          <label for="newName">Name</label>
+          <input type="text" ng-model='newItem.name' class="form-control" id="newName" placeholder="Enter name..." focus="true"/>
+        </div>
+        <div class="form-group">
+          <label for="newTag">Section</label>
+          <input type="text" ng-model='newItem.section' class="form-control" id="newTag" placeholder="Enter section..." typeahead-min-length = 0  typeahead="section for section in sections | filter:$viewValue | limitTo:8" ng-enter="(newItem.section == undefined || newItem.name == undefined) || ok()"/>          
+        </div>
+      </form>
+      
+    </div>
+   <div class="modal-footer">
+      <button type="button" class="btn btn-default" ng-click="cancel()">Close</button>
+      <button type="button" class="btn btn-primary" ng-click="ok()" ng-disabled="newItem.section == undefined || newItem.name == undefined">Save</button>
+    </div>
+  </div><!-- /.modal-content -->
+</div><!-- /.modal-dialog -->
+</script>
+
+<!--Preview-->
+<script type="text/ng-template" id="Preview-Modal.html">
+  <div class="modal-dialog">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h4 class="modal-title">{{component.schema.name}}</h4>
+    </div>
+    <div class="modal-body inputs-preview">
+      <onsite-inputs 
+      component='component' 
+      components='components'
+      project='project' 
+      schema='schema'
+      save-component='saveComponent()' 
+      set-status='setStatus(status)' 
+      is-preview='true'></onsite-inputs>
+    </div>
+   <div class="modal-footer">
+      <button type="button" class="btn btn-default" ng-click="cancel()">Close</button>
+  </div><!-- /.modal-content -->
+</div><!-- /.modal-dialog -->
+</script>
+
+<!--Edit Reference-->
+<script type="text/ng-template" id="EditReference-Content.html">
+  <div class="modal-dialog">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h4 class="modal-title">Edit reference for: {{input.name}}</h4>
+    </div>
+    <div class="modal-body">
+        <tabset>
+          <tab heading="Reference HTML">
+            <div ui-ace="{mode:'html', useWrapMode : true}"	ng-model='view.reference'></div>
+          </tab>
+          <tab heading="Preview">
+            <div ng-bind-html='view.reference' class='reset'></div>
+          </tab>
+        </tabset>
+    </div>
+   <div class="modal-footer">
+      <button type="button" class="btn btn-default" ng-click="cancel()">Close</button>
+      <button type="button" class="btn btn-primary" ng-click="ok()" ng-disabled="!view.reference || view.reference == ''">Save</button>
+    </div>
+  </div><!-- /.modal-content -->
+</div><!-- /.modal-dialog -->
+</script>
+
+<ng-include src="'partials/appHeader.html'"></ng-include>
+
+<div id="master-container" class="container">
+  <div class="row">
+    <div id='nav-pane' class="col-md-2">
+      <ng-include src="'partials/navPane.html'"></ng-include>
+    </div>   
+    <div class="col-md-10">
+      <div class="row">
+        <div class="col-md-12"><h3>{{component.name}}</h3></div>
+      </div>
+      <div class="row">
+        <div class="col-md-12">
+          <div class="panel panel-default">
+            <div class="panel-body">
+
+              <div class="row top-bar">
+                <div class='col-md-8 column'>
+                  <ol class="breadcrumb input-crumbs">
+                    <li><a href="#">Home</a></li>
+                    <li><a href="#/libraries">Libraries</a></li>
+                    <li><a href="#/libraries/{{library._id}}/components">{{library.name}} Library</a></li>
+                    <li class='active'>{{component.name}}</li>
+                  </ol>
+                </div>
+                <div class='col-md-4 column'>
+                  <span class="status-pane">
+                    <span class='status-info' ng-show="showStatus">
+                      <img src='img/loader.gif' ng-hide="status == 'Saved!'"/>
+                      <img src='img/check.png' ng-show="status == 'Saved!'"/>
+                      {{status}}
+                    </span>              
+                  </span>            
+                </div>
+
+              </div>
+              <!--
+              <div class='col-md-2 column'>
+                  <span class="button-pane">
+
+                  </span>
+                </div>-->
+              <div class="row show-hide" ng-show='loaded'>          
+                <div class="col-md-4 category-pane">
+                  <ul ui-sortable="sectionOptions" ng-model="component.sections" class='input-box'>
+                    <li ng-repeat="section in component.sections">
+
+                      <h4 ng-click="rename = true" ng-class="{sortIndicator: $parent.editMode}" ng-show='!rename'>{{ section.name }}</h4>
+                      <input type="text" class="form-control" ng-model="section.name" ng-show="rename" ng-blur='rename = false' focus='rename' ng-enter='rename = false' style="margin-bottom: 6px;"/>
+
+                      <div ui-sortable="$parent.inputOptions" ng-model="section.inputs" class="list-group input-sort">
+                        <a ng-repeat="input in section.inputs" class="list-group-item library-input" ng-click="$parent.$parent.selectedInput = input" ng-class="{active: $parent.$parent.selectedInput == input,sortIndicator: $parent.$parent.editMode}">{{ input.name }}</a>
+                      </div> 
+                    </li>
+                  </ul> 
+                  <a class="btn" ng-class="{'btn-primary': editMode, 'btn-default': !editMode}" ng-click="toggleEdit()" ng-show='component.sections.length !== 0'>{{editMode | iif : "Done" : "Sort"}}</a>
+                </div>
+
+                <div class='col-md-8'>
+                  <div class='right-align' style="margin-bottom: 7.05px;">
+                  <button type="button" class="btn btn-default" ng-click='showPreview()'>
+                      <span class="glyphicon glyphicon-tasks"></span>
+                    </button>
+                    <button type="button" class="btn btn-primary" ng-click='addNewDialogOpen()'>
+                    	<span class="glyphicon glyphicon-plus"></span>
+                    </button> 
+                    <button type="button" class="btn btn-primary" ng-click='saveComponent()'>
+						          <span class="glyphicon glyphicon-floppy-disk"></span>
+					          </button> 
+                  </div>            
+                  <div class="panel panel-default input-entries">
+                    <div class="panel-body">
+
+                      <form class="form-horizontal" role="form">
+                        <div class="form-group">
+                          <label for="inputName" class="col-sm-2 control-label">Name</label>
+                          <div class="col-sm-10">
+                            <input type="text" class="form-control" id="inputName" placeholder="Name" ng-model='selectedInput.name' ng-disabled="!selectedInput">
+                          </div>
+                        </div>
+                        <div class="form-group">
+                          <label for="inputAlias" class="col-sm-2 control-label">Alias</label>
+                          <div class="col-sm-10">
+                            <input type="text" class="form-control" id="inputAlias" placeholder="Alias" ng-model='selectedInput.alias' ng-disabled="!selectedInput">
+                          </div>
+                        </div>
+                        <div class="form-group">
+                          <label for="inputKeyboard" class="col-sm-2 control-label">Keyboard</label>
+                          <div class="col-sm-10">
+                            <select id="inputKeyboard" class="form-control" placeholder="Is Hidden Expression" ng-model='selectedInput.keyboard' ng-disabled="!selectedInput">
+                              <option value='text'>Text</option>
+							  <option value='memo'>Memo</option>
+                              <option value='tel'>Number</option>
+                              <option value='number'>Expression</option>
+							  <option value='date'>Date</option>
+                            </select>
+                          </div>
+                        </div>
+                        <div class="form-group">
+                          <label for="inputUnits" class="col-sm-2 control-label">Units</label>
+                          <div class="col-sm-10">
+                            <input type="text" class="form-control" id="inputUnits" placeholder="Units" ng-model='selectedInput.units' ng-disabled="!selectedInput">
+                          </div>
+                        </div>
+                        <div class="form-group">
+                          <label for="inputDefaultValue" class="col-sm-2 control-label">Default Value</label>
+                          <div class="col-sm-10">
+                            <input type="text" class="form-control" id="inputDefaultValue" placeholder="Default Value Expression" ng-model='selectedInput.defaultValue' ng-disabled="!selectedInput">
+                          </div>
+                        </div>
+                        <div class="form-group">
+                          <label for="inputOptions" class="col-sm-2 control-label">Options</label>
+                          <div class="col-sm-10">
+                            <input type="text" class="form-control" id="inputOptions" placeholder="Options expression" ng-model='selectedInput.options' ng-disabled="!selectedInput">
+                          </div>
+                        </div>
+                        <div class="form-group">
+                          <label for="inputHidden" class="col-sm-2 control-label">Hidden</label>
+                          <div class="col-sm-10">
+                            <input type="text" class="form-control" id="inputHidden" placeholder="Is Hidden Expression" ng-model='selectedInput.hidden' ng-disabled="!selectedInput">
+                          </div>
+                        </div>
+                        <div class="form-group">
+                          <label for="inputRestricted" class="col-sm-2 control-label">Restricted</label>
+                          <div class="col-sm-10">
+                            <select id="inputRestricted" class="form-control" placeholder="Is Hidden Expression" ng-model='selectedInput.restricted' ng-disabled="!selectedInput">
+                              <option value='1'>Yes</option>
+                              <option value='0'>No</option>
+                            </select>
+                          </div>
+                        </div>
+                        <div class="form-group">
+                          <label for="inputDescription" class="col-sm-2 control-label">Reference</label>
+                          <div class="col-sm-10">
+                            <div class="input-group">
+                              <select id="inputDescription" class="form-control" ng-model='selectedInput.showReference' ng-disabled="!selectedInput">
+                                  <option value="0">No</option>
+                                  <option value="1">Yes</option>                              
+                              </select>
+                              <div class='input-group-btn'>
+                                <button type="button" class="btn btn-primary" ng-click='editReference(selectedInput)' ng-disabled="!selectedInput || !selectedInput.showReference">Edit</button>
+                              </div>                        
+                            </div>
+                          </div>
+                        </div>
+                        <div class="form-group">
+                          <label for="inputLookUp" class="col-sm-2 control-label">Look Up Table</label>
+                          <div class="col-sm-10">
+                            <div class="input-group">
+                              <select id="inputLookupId" class="form-control" ng-model='selectedInput.lookupTableId' ng-disabled="!selectedInput" ng-options="l._id as l.name for l in lookupTables">
+                                  <option value="">--None--</option>                            
+                              </select>
+                              <div class='input-group-btn'>
+                                <button type="button" class="btn btn-primary" ng-click='lookupTableDialogOpen()' ng-disabled="!selectedInput || !selectedInput.lookupTableId || selectedInput.lookupTableId == ''">Edit</button>
+                              </div>                        
+                            </div>
+                          </div>
+                        </div>
+                        <div class="form-group">
+                          <div class="col-sm-10 col-sm-offset-2">
+                            <!--<button type="button" class="btn btn-primary float-left" ng-click='lookupTableDialogOpen()' ng-disabled="!selectedInput">New Lookup Table</button>-->
+                          <button type="button" class="btn btn-danger float-right" ng-click='deleteInput()' ng-disabled="!selectedInput">Delete Input</button>
+                          </div>
+                        </div>                  
+                      </form>
+
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+
+

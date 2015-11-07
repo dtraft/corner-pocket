@@ -1,0 +1,97 @@
+<ng-include src="'partials/appHeader.html'"></ng-include>
+
+<div id="master-container" class="container">
+  <div class="row">
+    <div id='nav-pane' class="col-md-2">
+      <ng-include src="'partials/navPane.html'"></ng-include>
+    </div>   
+    <div class="col-md-10">
+      <div class="row">
+        <div class="col-md-12">
+          <h3 class='editable' ng-click="rename = true" ng-hide="rename">{{lookupTable.name}}</h3>
+          <input type="text" ng-model='lookupTable.name' class="form-control header-input" id="newName" ng-show="rename" ng-blur='rename = false' focus='rename' ng-enter='rename = false' autofocus/>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-md-12">
+          <div class="panel panel-default">
+            <div class="panel-body">
+
+              <div class="row top-bar">
+                <div class='col-md-8 column'>
+                  <ol class="breadcrumb input-crumbs">
+                    <li><a href="#">Home</a></li>
+                    <li><a href="#/libraries">Libraries</a></li>
+                    <li><a href="#/libraries/{{library._id.$id}}/components">{{library.name}} Library</a></li>
+                    <li class='active'>{{lookupTable.name}}</li>
+                  </ol>
+                </div>
+                <div class='col-md-4 column'>
+                  <span class="status-pane">
+                    <span class='status-info' ng-show="showStatus">
+                      <img src='img/loader.gif' ng-hide="status == 'Saved!'"/>
+                      <img src='img/check.png' ng-show="status == 'Saved!'"/>
+                      {{status}}
+                    </span>              
+                  </span>            
+                </div>          
+              </div>
+
+              <div class='row'>
+                <div class="col-md-12">
+                  <button type="button" class="btn btn-primary float-right" style="margin-bottom: 7.05px;" ng-click="save()" ng-disabled="lookupTable.xConditions.length == 0 || lookupTable.yConditions.length == 0" >
+                    Save
+                  </button>
+                </div>
+              </div>
+
+              <div class='row overflowed'>
+                <div class="col-md-12">
+                  <table class="table-bordered lookupTable">
+                    <tr>
+                      <th>          
+                      </th>
+                      <th ng-repeat="condition in lookupTable.xConditions track by $index">
+                        <input type='text' class="form-control" ng-model='condition' placeholder='New Condition' ng-blur="condition || deleteColumn($index)" ng-change="!lookupTable._id || (librarySave.status = 'Save To Library')"/>
+                      </th>
+                      <th>
+
+                        <input type='text' class="form-control" ng-model="newConditions.X" placeholder='Type to Add New' ng-enter="newConditions.X == '' || addNewColumn()" ng-blur="newConditions.X == '' || addNewColumn()" ng-change="!lookupTable._id || (librarySave.status = 'Save To Library')"/>
+                      </th>
+                    </tr>
+                    <tr ng-repeat="condition in lookupTable.yConditions track by $index">
+                      <td>
+                        <input type='text' class="form-control" ng-model='condition' placeholder='New Condition' ng-blur="condition || deleteRow($index, condition)" ng-change="librarySave.status = 'Save To Library'"/>
+                      </td>
+                      <td ng-repeat="condition in lookupTable.xConditions track by $index">
+                        <input type='text' class="form-control" ng-model='lookupTable.optionCells[$parent.$index][$index]'/>
+                      </td>
+                      <td>          
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <input type='text' class="form-control" ng-model="newConditions.Y" placeholder='Type to Add New' ng-enter="newConditions.Y == '' || addNewRow()" ng-blur="newConditions.Y == '' || addNewRow()" ng-change="!lookupTable._id || (librarySave.status = 'Save To Library')"/>
+                      </td>
+                      <td ng-repeat="condition in lookupTable.xConditions track by $index">
+                      </td>
+                      <td>            
+                      </td>
+                    </tr>
+                  </table>
+                </div>
+              </div>
+
+
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+
+

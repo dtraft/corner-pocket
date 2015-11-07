@@ -1,0 +1,70 @@
+<!--Modal Dialogs-->
+
+<!--Add New-->
+<script type="text/ng-template" id="signUp-content.html">
+  <div class="modal-dialog">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h4 class="modal-title">Sign up to use Onsite!</h4>
+    </div>
+    <div class="modal-body">
+      <form role="form">
+        <div class="form-group">
+          <label for="email">Email</label>
+          <input type="email" ng-model='user.username' class="form-control" id="email" placeholder="Enter email..." autofocus/>
+        </div>
+        <div class="form-group">
+          <label for="pass">Password</label>
+          <input type="password" ng-model='user.password' class="form-control" id="pass" placeholder="Enter password..." autofocus/>
+        </div>
+        <div class="form-group">
+          <label for="pass2">Re-enter Password</label>
+          <input type="password" ng-model='passwordCheck' class="form-control" id="pass2" placeholder="Re-enter password..." autofocus/>
+        </div>
+        <div ng-show='passwordCheck != user.password'>Passwords do not match!</div>
+      </form>
+      
+    </div>
+   <div class="modal-footer">
+      <button type="button" class="btn btn-default" ng-click="cancel()">Close</button>
+      <button type="button" class="btn btn-primary" ng-click="ok()" ng-disabled="user.password != passwordCheck">Save</button>
+    </div>
+  </div><!-- /.modal-content -->
+</div><!-- /.modal-dialog -->
+</script>
+
+
+<div id="app-header">
+  <div id="icon" class="float-left">
+    OnSite
+  </div>
+  <div id="user-info" class="float-right">
+    <button class="btn" ng-click='signUpDialogOpen()'>Sign Up</button>
+  </div>
+</div>
+
+<div class="row" style='margin-top: 40px;'>
+  <div class="col-md-3 col-md-offset-4" style='text-align: center'>
+    <h3>Onsite Data Collection</h3>
+    <form role="form" ng-submit="login()">
+      <div class="form-group">
+        <input type="text" class="form-control" placeholder="Email" ng-model="user.name">
+      </div>
+      <div class="form-group">
+        <input type="password" class="form-control" placeholder="Password" ng-model="user.password">
+      </div>
+      <button type="submit" class="btn btn-default btn-block" >Login</button>
+    </form>
+    <br/>
+    <div class='login-status' ng-show="status == 'go'">
+      <i class="spinner fa fa-spinner fa-lg"></i>
+      Logging In....
+    </div>  
+    <div class='login-status' ng-show="status == 'error'" style='color: red;'>
+      <!--<img src='img/loader.gif'/>-->
+      Invalid login credentials.
+    </div>    
+  </div>
+</div>
+
+

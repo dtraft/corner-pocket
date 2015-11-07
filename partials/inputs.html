@@ -1,0 +1,53 @@
+<form class="form-horizontal" role="form" style='margin-top: 40px;'>                       
+<div class='well well-sm' ng-repeat="section in schema.sections" ng-hide="section.view.isHidden">
+  <h5>{{section.name}}</h5>                        
+  <div class="form-group" ng-repeat="input in section.inputs" ng-hide="parentObject.state[input.alias].isHidden">
+    <label for="{{input.alias}}" class="control-label col-sm-5 text-overflow">
+        {{input.name}}
+        <span class="glyphicon glyphicon-info-sign" ng-show='input.showReference' ng-click='showReference(input)'></span>
+    </label>
+    <div ng-class="{'input-group': input.units, 'col-sm-7':input.keyboard == 'memo', 'col-sm-5':input.keyboard !== 'memo'}">
+      <input  ng-hide='(parentObject.state[input.alias].options.length >= 1 && input.restricted) || input.keyboard == "memo"' type='{{input.keyboard == "date" ? "date":"text"}}' class='form-control' id='{{input.alias}}' 
+              placeholder='{{input.name}}' ng-model='parentObject.values[input.alias]' 
+              ng-change="onInputChange(parentObject.values[input.alias])" ng-readonly="input.restricted == '1'" 
+			  ng-blur='onInputBlur(parentObject.values[input.alias], input)'
+			  ng-focus='onInputFocus(parentObject.values[input.alias])'
+              		  animation='am-fade' data-min-length='0' ng-options="o.value as o.key for o in parentObject.state[input.alias].options" limit='10' bs-typeahead> 
+			  
+      <textarea  ng-show='input.keyboard == "memo"' class='form-control' rows='5' id='{{input.alias}}'  
+              placeholder='{{input.name}}' ng-model='parentObject.values[input.alias]' 
+              ng-change="onInputChange(parentObject.values[input.alias])" ng-readonly="input.restricted == '1'" 
+			  ng-blur='onInputBlur(parentObject.values[input.alias], input)'
+			  ng-focus='onInputFocus(parentObject.values[input.alias])'></textarea>
+
+      <select ng-show='parentObject.state[input.alias].options.length >= 1 && input.restricted' class='form-control' id='{{input.alias}}' 
+              placeholder='{{input.name}}' ng-model='parentObject.values[input.alias]' 
+              ng-change="onInputChange(parentObject.values[input.alias], input)" ng-options="o.value as o.key for o in parentObject.state[input.alias].options" 
+			  ng-blur='onInputBlur(parentObject.values[input.alias], input, true)'
+			  ng-focus='onInputFocus(parentObject.values[input.alias])'>
+              
+              <option value='' disabled>--{{input.name}}--</option>
+      </select>
+
+      <span ng-show='input.units' class="input-group-addon">{{input.units}}</span>
+    </div>
+  </div>
+</div>                      
+</form>
+
+<!--Edit Reference-->
+<script type="text/ng-template" id="Reference-Content.html">
+  <div class="modal-dialog">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h4 class="modal-title">{{input.name}} Reference</h4>
+    </div>
+    <div class="modal-body">
+        <div ng-bind-html='input.reference' class='reset'></div>
+    </div>
+   <div class="modal-footer">
+      <button type="button" class="btn btn-default" ng-click="cancel()">Close</button>
+    </div>
+  </div><!-- /.modal-content -->
+</div><!-- /.modal-dialog -->
+</script>

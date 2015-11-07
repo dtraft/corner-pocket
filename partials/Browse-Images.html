@@ -1,0 +1,39 @@
+<!--BROWSE IMAGES-->
+
+<div class="modal-dialog"  style='width: 600px;'>
+  <div class="modal-content">
+    <div class="modal-header">
+      <h4 class="modal-title">
+		  <a href='' style='font-weight: 400' ng-click='setView("slides")' ng-class="{'no-link': view == 'slides' || uploading}">Browse Images</a> 
+		  or 
+		  <a href='' style='font-weight: 400' ng-click='setView("upload")' ng-class="{'no-link': view == 'upload' || uploading}">Upload new image</a></h4>
+    </div>
+    <div class="modal-body" ng-show='view == "slides"'>
+	    <carousel disable-ng-animate>
+	      <slide ng-repeat="slide in slides" active="slide.active">
+	        <img ng-src="{{slide.url}}" style="margin:auto;">
+	        <div class="carousel-caption">
+	          <p>{{slide.caption}}</p>
+	        </div>
+	      </slide>
+	    </carousel>
+    </div>
+    <div class="modal-body" ng-show='view == "upload"'>
+        <form role="form">
+          <div class="form-group">
+            <label for="caption">Caption</label>
+            <input type="text" ng-model='attachment.caption' class="form-control" id="caption" placeholder="Enter caption..." autofocus/>
+          </div>
+          <div class="form-group">
+            <label for="file">File</label>
+            <input type="file" id="file" accept="image/*" ng-file-select='onFileSelect($files)'/>        
+          </div>
+		  <button class="btn btn-primary" ng-click='upload()' ng-disabled='uploading'>{{uploading ? 'Uploading...':'Upload'}}</button>
+        </form>
+    </div>
+   <div class="modal-footer">
+	  <button type="button" class="btn btn-danger pull-left" ng-click="deleteAttachment()" ng-show='view == "slides"'>Delete</button>
+      <button type="button" class="btn btn-default" ng-click="cancel()" ng-disabled='uploading'>Close</button>
+    </div>
+  </div><!-- /.modal-content -->
+</div><!-- /.modal-dialog -->

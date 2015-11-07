@@ -1,0 +1,206 @@
+<ng-include src="'partials/appHeader.html'"></ng-include>
+
+<div id="master-container" class="container">
+  <div class="row">
+    <div id='nav-pane' class="col-md-2">
+      <ng-include src="'partials/navPane.html'"></ng-include>
+    </div>   
+    <div class="col-md-10">
+      <div class="row">
+        <div class="col-md-12"><h3>Settings</h3></div>
+      </div>
+      <div class="row">
+        <div class="col-md-12">
+          <div class="panel panel-default">
+            <div class="panel-body">
+              <div class="row top-bar">
+                <div class='col-md-9 column'>
+                  <ol class="breadcrumb">
+                    <li><a href="#">Home</a></li>
+                    <li class='active'>Tools</li>
+                  </ol>
+                </div>
+                <div class='col-md-3 column'>
+                  <span class="status-pane">
+                    <span class='status-info' ng-show="showStatus">
+                      <img src='img/loader.gif' ng-hide="status == 'Saved!'"/>
+                      <img src='img/check.png' ng-show="status == 'Saved!'"/>
+                      {{status}}
+                    </span>              
+                  </span>
+                </div>
+              </div>
+              <div class='row'>
+                <div class="col-md-12">
+                  <tabset>
+                    <tab heading='Data Access'>
+                      <br>
+                      <div class="row">
+                          <div class="col-md-7">
+                            <div class="input-group">
+                              <span class="input-group-addon">
+                                <span class="glyphicon glyphicon-search"></span>
+                              </span>
+                              <input type="text" class="form-control dropdown-toggle" placeholder="Search Projects..." ng-model='searchQuery'>
+                              <ul class="dropdown-menu search-bar-dropdown">
+                                <li ng-repeat="choice in projects | filter: searchQuery | orderBy: 'tag'">
+                                  <a href="" ng-click='addToQuery(choice)'>{{choice.name}} ({{choice.tag}})</a>
+                                </li>
+                              </ul>
+                            </div>
+                          </div>
+                          <div class='col-md-5'>
+                            <form class="form-horizontal" role="form">
+                              <div class="form-group">
+                                <label class="col-sm-5 control-label">Select all with tag</label>
+                                <div class="col-sm-7">
+                                  <select class='form-control' ng-model='tag' ng-change='tagSelected(tag)' ng-options='tag for tag in tags'>
+                                    <option value=''>--select tag--</option>
+                                  </select>
+                                </div>
+                              </div>
+                            </form>
+                          </div>
+                      </div>
+                      <div class='row'>
+                        <div class="col-md-12">
+                          <h4>Selected Projects</h4>
+                          <div ng-hide='selectedProjects.length > 0' style='margin-bottom: 20px'>
+                            <em>No projects selected.  All projects will be downloaded.</em>
+                          </div>
+                          <div ng-hide='selectedProjects.length < 1'>
+                            <table class='table'>
+                              <tr>
+                                <th style="width: 36px; min-width:0px;"></th>
+                                <th>Project Name</th>
+                                <th>Tag</th>
+                                <th>Authors</th>
+                              </tr>
+                              <tr ng-repeat='project in selectedProjects'>
+                                <td>
+                                  <span class='glyphicon glyphicon-remove' ng-click='removeFromQuery(project)'></span>
+                                </td>
+                                <td>{{project.name}}</td>
+                                <td>{{project.tag}}</td>
+                                <td>{{project.authors}}</td>
+                              </tr>                              
+                            </table>
+                          </div>
+                        </div>
+                      </div>
+                      <a ng-href='{{queryUrl}}'>
+                        Download Data (Excel)
+                      </a>
+                    </tab>
+                    <tab heading='Group Settings'>
+                        <div class='row'>
+                            <div class='col-md-8'>
+                                <h4>Group Defaults 
+                                    <small> (used during report generation)</small>
+                                    <div class='btn-toolbar button-collection pull-right' role='toolbar'>
+            		                    <button type="button" class="btn btn-default" ng-click='browsePhotos()'>
+            		                      <span class="glyphicon glyphicon-camera"></span>
+            		                    </button>
+                                        <button type="button" class="btn btn-primary" ng-click='saveCommon()'>
+        						          <span class="glyphicon glyphicon-floppy-disk"></span>
+        					           </button>
+                                   </div>
+                                </h4>                                
+                            </div>
+                            
+                        </div>
+                        <div class='row'>
+                            <div class='col-md-8'>                                
+                                <table class='table'>
+                                  <tr>
+                                    <th style="width: 36px; min-width:0px;"></th>
+                                    <th>Key</th>
+                                    <th>Value</th>
+                                  </tr>
+                                  <tr ng-repeat='(key, value) in common.values'>
+                                    <td>
+                                      <span class='glyphicon glyphicon-remove' ng-click='removePair(key)'></span>
+                                    </td>
+                                    <td>
+                                        <label class='control-label' for="value{{$index}}">{{key}}</label>
+                                    </td>
+                                    <td>
+                                        <input class="form-control" type="text" id='value{{$index}}' placeholder="Value" ng-model='common.values[key]'>
+                                    </td>                                    
+                                  </tr>
+                                  <tr>
+                                      <td>
+                                          <span class='glyphicon glyphicon-plus' ng-click='addPair()'></span>
+                                      </td>
+                                      <td>
+                                          <input class="form-control" type="text" placeholder="Key" ng-model='newPair.key'>
+                                      </td>
+                                      <td>
+                                          <input class="form-control" type="text" placeholder="Value" ng-model='newPair.value' ng-enter-always='addPair()'>
+                                      </td>
+                                      
+                                  </tr>                              
+                                </table>                                
+                            </div>
+                        </div>
+                      
+                    </tab>
+                    <tab heading='Account Settings'>
+                      Here's where we'll show basic account settings and tools (change email, password, first/last name, etc.)
+                    </tab>
+                    <!--
+                    <tab heading='Manage Users'>
+                      <table class='table'>
+                        <tr>
+                          <th>User</th>
+                          <th>Email</th>
+                          <th>Role</th>
+                          <th>Status</th>
+                          <th>Remove User</th>
+                        </tr>
+
+                        <tr ng-repeat="user in users" ng-class='{italic:!user.displayName}'>
+                          <td>{{user.displayName}}</td>
+                          <td>{{user.username}}</td>
+                          <td>
+                            <select class='form-control' ng-model='user.role' ng-change="updateUserRole(user)">
+                              <option value='0'>Admin</option>
+                              <option value='1'>Editor</option>
+                              <option value='2'>User</option>
+                            </select>
+                          </td>
+                          <td>
+                            <span ng-if='user.displayName'>Active</span>  
+                            <span ng-if='!user.displayName'>Pending</span>  
+                          </td>
+                          <td style="padding-left:25px;"><span class="glyphicon glyphicon-remove" ng-click="removeUser(user)"></span></td>
+                        </tr>
+                      </table>
+                      <a ng-click='inviteNewUsers()'>Invite New User(s)</a>
+                    </tab>
+                    <tab heading='Group Settings'>
+                      <br/>
+                      <div class='row'>
+                        <div class='col-md-6'>
+                          <form role="form">
+                            <div class="form-group">
+                              <label for="groupName">Group Name</label>
+                              <input type="text" ng-model='group.name' class="form-control" id="groupName" placeholder="Enter name..." autofocus/>
+                            </div>
+                          </form>
+                          <button type="button" class="btn btn-primary" ng-click="saveGroup()" ng-disabled="group.name === undefined || group.name === ''">Save</button>
+                        </div>     
+                      </div>                      
+                      <a ng-click='createNewGroup()'>Create New Group</a>
+                    </tab>
+                    -->
+                  </tabset>
+                </div>                
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      </div>
+  </div>
+</div>

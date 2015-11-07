@@ -1,0 +1,193 @@
+<!--Modal Dialogs-->
+
+<!--Add New-->
+<script type="text/ng-template" id="AddNew-Content.html">
+  <div class="modal-dialog">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h4 class="modal-title">{{mode}}</h4>
+    </div>
+    <div class="modal-body">
+      <form role="form">
+        <div class="form-group">
+          <label for="newName">Name</label>
+          <input type="text" ng-model='newItem.name' class="form-control" id="newName" placeholder="Enter name..." focus='true'/>
+        </div>
+        
+        <div class="form-group" ng-show="!isExisting">
+          <label for="newTemplate">Template</label>
+          <select ng-model='newItem.template' class="form-control" id="newTemplate" ng-disabled='isExisting' ng-options='c as c.name group by c.tag for c in templates'>
+            <option value=''>--Start Fresh!--</option>
+          </select>
+        </div>        
+        <div class="form-group" ng-show="!newItem.template && !isExisting">
+          <label for="newTemplate">Utilized Libraries</label>
+          <div class="checkbox" ng-repeat="library in libraries">
+            <label>
+              <input type="checkbox" name="selectedLibraries" ng-model="library.selected">
+              {{library.name}}
+            </label>
+          </div>         
+        </div> 
+        
+        <div class="form-group">
+          <label for="newTag">Tag</label>
+          <input type="text" ng-model='newItem.tag' class="form-control" id="newTag" placeholder="Enter tag..." typeahead="tag for tag in tags | filter:$viewValue | limitTo:8" ng-enter="(newItem.tag == undefined || newItem.name == undefined) || ok()"/>
+        </div>   
+        
+        <div class="form-group" ng-show="!isExisting">
+            <label for="newName">Author(s)</label>
+			<button type="button" class="btn btn-default multi-select" ng-model="newItem.authors" data-multiple="true" ng-options="author for author in authors" placeholder='Assign project' bs-select>
+			  Action <span class="caret pull-right"></span>
+			</button>
+		</div>
+        <div class="form-group">
+          <label>Activate project for mobile devices</label>
+          <div class="checkbox">
+            <label>
+              <input type="checkbox" ng-model="newItem.isActive">
+              Project is {{newItem.isActive ? 'Active' : 'Inactive'}}
+              <span ng-show="!newItem.isActive && !isExisting">
+                   - It will not be synced to mobile devices.
+              </span>
+              <span ng-show="!newItem.isActive && isExisting">
+                   - It will not be synced to mobile devices and will be removed from devices after sync.
+              </span>
+            </label>
+          </div>         
+        </div>
+             
+      </form>
+      
+    </div>
+   <div class="modal-footer">
+      <button type="button" class="btn btn-default" ng-click="cancel()">Close</button>
+      <button type="button" class="btn btn-primary" ng-click="ok()" ng-disabled="newItem.tag == undefined || newItem.name == undefined || newItem.authors.length < 1">Save</button>
+    </div>
+  </div><!-- /.modal-content -->
+</div><!-- /.modal-dialog -->
+</script>
+
+<!--Download-->
+<script type="text/ng-template" id="Download-Content.html">
+  <div class="modal-dialog">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h4 class="modal-title">
+        {{status}}
+      </h4>
+    </div>
+    <div class="modal-body">
+       <a ng-show='report.doc' ng-href="data:application/octet-stream;base64,{{report.doc}}" download="{{report.title}}">Click Here to Download Report</a>
+    </div>
+    <div class="modal-footer">  
+      <button type="button" class="btn btn-default" ng-click="cancel()">Close</button>
+    </div>
+  </div><!-- /.modal-content -->
+</div><!-- /.modal-dialog -->
+</script>
+
+<ng-include src="'partials/appHeader.html'"></ng-include>
+
+<div id="master-container" class="container">
+  <div class="row">
+    <div id='nav-pane' class="col-md-2">
+      <ng-include src="'partials/navPane.html'"></ng-include>
+    </div>    
+    <div class="col-md-10">
+      <div class="row">
+        <div class="col-md-12"><h3>Projects</h3></div>
+      </div>
+      <div class="row">
+        <div class="col-md-12">
+          <div class="panel panel-default">
+            <div class="panel-body">
+
+              <div class="row top-bar">
+                <div class='col-md-9 column'>
+                  <ol class="breadcrumb">
+                    <li><a href="#">Home</a></li>
+                    <li class='active'>Projects</li>
+                  </ol>
+                </div>
+                <div class='col-md-3 column'>
+                  <span class="status-pane">
+                    <span class='status-info' ng-show="showStatus">
+                      <img src='img/loader.gif' ng-hide="status == 'Saved!'"/>
+                      <img src='img/check.png' ng-show="status == 'Saved!'"/>
+                      {{status}}
+                    </span>              
+                  </span>
+                  <!--INsert loading icon here-->
+
+                </div>
+              </div>
+
+              <div class="row">
+                <div class="col-md-8">
+                  <div class="input-group">
+                    <span class="input-group-addon">
+                      <span class="glyphicon glyphicon-search"></span>
+                    </span>
+                    <input type="text" class="form-control dropdown-toggle" placeholder="Search Projects..." ng-model='searchQuery'>
+                    <ul class="dropdown-menu search-bar-dropdown">
+                      <li ng-repeat="choice in items | filter: searchQuery">
+                        <a href="#/projects/{{choice._id}}">{{choice.name}}</a>
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+                <div class="col-md-2 col-md-offset-2 right-align">
+                  <button type="button" class="btn btn-primary" ng-click='addNewDialogOpen()'>
+                  	<span class="glyphicon glyphicon-plus"></span>
+                  </button>
+                </div>
+              </div>
+
+              <br/>
+              <div class="row">          
+                <div class="col-md-4 category-pane">
+                  <tabset type="pills" direction='left' class="categories"  >
+                    <tab heading="{{tag}}" ng-repeat="tag in tags" select='setTag(tag)'></tab>
+                  </tabset>
+
+                </div>
+
+                <div class='col-md-8'>
+                  <div class="panel panel-default">
+                    <div class="panel-body">               
+
+                      <div class="row listing" ng-repeat="item in items | filter: {tag:selectedTag}">
+                        <div class='col-md-8'>
+                          <a href="#/projects/{{item._id}}">{{item.name}}</a>
+                        </div>
+                        <div class='col-md-1'>
+                          <span class="glyphicon glyphicon-edit" ng-click="updateItem(item._id)"></span>
+                        </div>
+                        <div class='col-md-1'>
+                          <span class="glyphicon glyphicon-trash" ng-click="deleteItem(item._id)"></span>
+                        </div>
+                        <div class='col-md-2'>
+                          <span class="glyphicon glyphicon-stats dropdown-toggle" ng-click=""></span>
+                          <ul class="dropdown-menu">
+                            <li ng-repeat="report in reports">
+                              <a ng-click="downloadReport(report, $parent.item)">{{report.tag}} - {{report.name}}</a>                        
+                            </li>
+                          </ul>
+                        </div>
+                      </div>              
+
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+

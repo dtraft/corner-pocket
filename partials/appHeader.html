@@ -1,0 +1,16 @@
+<div id="app-header">
+  <div id="icon" class="float-left">
+    Onsite
+  </div>
+  <div id="user-info" class="float-right">
+    {{user.name}} / 
+    <a class="dropdown-toggle"><b>{{user.activeGroup.name}}</b></a>
+    <ul class="dropdown-menu">
+      <li><a>Groups</a></li>
+      <li ng-repeat="group in user.groups">
+        <a ng-click='user.setGroup(group)'>{{group.name}}</a>
+      </li>
+    </ul>      
+    <button class="btn" ng-click='user.logOut()'>Sign Out</button>
+  </div>
+</div>

@@ -1,0 +1,182 @@
+<!--Modal Dialogs-->
+
+<!--Add New-->
+<script type="text/ng-template" id="AddNew-Content.html">
+  <div class="modal-dialog">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h4 class="modal-title">{{mode}}</h4>
+    </div>
+    <div class="modal-body">
+    
+      <form role="form">
+        <div class="form-group">
+            <label for="newName">Library</label>
+            <select ng-model='library' class="form-control" ng-options='l.name for l in libraries' ng-change='view.components = []' autofocus>
+            </select>
+        </div>
+		<!--
+        <div class="form-group">
+            <label for="newName">Component</label>
+            <select ng-model='view.component' ng-change='newItem.name = view.component.name' class="form-control" ng-options='c as c.name for c in components | filter: {libraryId: libraryId}'>
+              <option value="">-</option>
+            </select>
+        </div>
+			-->
+        <div class="form-group">
+            <label for="newName">Component</label>
+			<button type="button" class="btn btn-default multi-select" ng-model="view.components" data-multiple="true" ng-options="c._id as c.name for c in library.components" placeholder='Choose which component schemas should be included...' bs-select>
+			  Action <span class="caret pull-right"></span>
+			</button>
+		</div>
+		  
+        <div class="form-group">
+          <label for="newName">Name</label>
+          <input type="text" ng-model='newItem.name' class="form-control" id="newName" placeholder="Enter name..." />
+        </div>
+        
+        <div class="form-group">
+          <label for="newName">Condition</label>
+          <input type="text" ng-model='newItem.condition' class="form-control" id="newName" placeholder="Enter condition...or leave blank to use all components of this type" ng-enter="(newItem.name === undefined) || ok()"/>
+        </div>
+		
+		{{components}}
+        <!--
+        <span class='pointer' ng-click="view.showComponent = !view.showComponent">
+          <span ng-class="{'glyphicon glyphicon-chevron-right':!view.showComponent, 'glyphicon glyphicon-chevron-down':view.showComponent}"></span>
+          <h4 style='display:inline-block;'>Show Component</h4>
+        </span>
+        
+        <div ng-show='view.showComponent' ng-repeat='section in view.component.sections'>
+          <h5>{{section.name}}</h5>
+          <ul>            
+            <li ng-repeat='input in section.inputs'>
+              {{input.name}} - {{input.alias}}
+            </li>
+          </ul>
+        </div>       
+        -->
+      </form>
+      
+    </div>
+   <div class="modal-footer">
+      <button type="button" class="btn btn-default" ng-click="cancel()">Close</button>
+      <button type="button" class="btn btn-primary" ng-click="ok()" ng-disabled="newItem.name == undefined">Save</button>
+    </div>
+  </div><!-- /.modal-content -->
+</div><!-- /.modal-dialog -->
+</script>
+<ng-include src="'partials/appHeader.html'"></ng-include>
+
+<div id="master-container" class="container">
+  <div class="row">
+    <div id='nav-pane' class="col-md-2">
+      <ng-include src="'partials/navPane.html'"></ng-include>
+    </div>       
+    <div class="col-md-10">
+      <div class="row">
+        <div class="col-md-12"><h3>{{report.name}}</h3></div>
+      </div>
+      <div class="row">
+        <div class="col-md-12">
+          <div class="panel panel-default">
+            <div class="panel-body">
+
+              <div class="row top-bar">
+                <div class='col-md-8 column'>
+                  <ol class="breadcrumb input-crumbs">
+                    <li><a href="#">Home</a></li>
+                    <li><a href="#/reports">Reports</a></li>
+                    <li class='active'>{{report.name}}</li>
+                  </ol>
+                </div>
+                <div class='col-md-4 column'>
+                  <span class="status-pane">
+                    <span class='status-info' ng-show="showStatus">
+                      <img src='img/loader.gif' ng-hide="status == 'Saved!'"/>
+                      <img src='img/check.png' ng-show="status == 'Saved!'"/>
+                      {{status}}
+                    </span>              
+                  </span>            
+                </div>
+
+              </div>
+              <!--
+              <div class='col-md-2 column'>
+                  <span class="button-pane">
+
+                  </span>
+                </div>-->
+
+              <div class="row">          
+                <div class="col-md-4 category-pane">
+                  <h4 style="margin-bottom: 12px;">Triggers</h4>
+                  <div ui-sortable="triggerOptions" ng-model="report.triggers" class="list-group">
+                    <a ng-repeat="trigger in report.triggers" class="list-group-item" ng-click="setTrigger(trigger)" ng-class="{active: $parent.selectedTrigger === trigger,sortIndicator: $parent.editMode}">
+                      {{ trigger.name }}
+                      <span ng-show='$parent.editMode' class='pointer pull-right'>                              
+                        <!--edit icon during editing-->
+                        <span class="glyphicon glyphicon-edit" ng-click='addNewDialogOpen(trigger)'></span>                              
+                      </span>                
+                    </a>
+                  </div>
+
+                  <a class="btn" ng-class="{'btn-primary': editMode, 'btn-default': !editMode}" ng-click="editMode = !editMode; triggerOptions.disabled = !triggerOptions.disabled;">{{editMode | iif : "Done" : "Edit"}}</a>
+                </div>
+
+                <div class='col-md-8'>
+                  <div class='right-align' style="margin-bottom: 7px;">
+                    <button type="button" class="btn btn-primary" ng-click='addNewDialogOpen()'>
+						<span class='glyphicon glyphicon-plus'></span>
+					</button>
+                    <button type="button" class="btn btn-primary" ng-click='saveReport()'>
+                    	<span class='glyphicon glyphicon-floppy-disk'></span>
+                    </button> 
+                  </div>            
+                  <div class="panel panel-default input-entries">
+                    <div class="panel-body">
+                      <h4 ng-show="selectedTrigger.name">{{selectedTrigger.name}}</h4>
+                      <h4 ng-show="!selectedTrigger.name">No Trigger Selected</h4>
+                      <tabset>
+                        <tab heading="Header">
+                          <div ui-ace="{
+								mode:'html', 
+								useWrapMode : true,
+								onLoad: aceLoaded
+							}"
+							ng-model='selectedTrigger.header' readonly="{{selectedTrigger === undefined}}">
+						</div>
+                        </tab>
+                        <tab heading="Body">
+                          <div ui-ace="aceOptions" ng-model='selectedTrigger.body' readonly="{{selectedTrigger === undefined}}"></div>
+                        </tab>
+                        <tab heading="Footer">
+                          <div ui-ace="aceOptions" ng-model='selectedTrigger.footer' readonly="{{selectedTrigger === undefined}}"></div>
+                        </tab>
+                        <tab heading="Styles" class="pull-right">
+                          <div ui-ace="{mode:'css', useWrapMode : true}" ng-model='report.styles' ></div>
+                        </tab>
+                      </tabset>
+
+
+                      <div style="margin-top:10px;"> 
+                        <!--<button type="button" class="btn btn-primary float-left" ng-click='lookupTableDialogOpen()' ng-disabled="!selectedInput">New Lookup Table</button>-->
+                        <button type="button" class="btn btn-danger pull-right" ng-click='deleteTrigger()' ng-disabled="!selectedTrigger">Delete</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+
+
+
